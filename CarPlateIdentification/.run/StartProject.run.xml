@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="StartProject" type="CompoundRunConfigurationType">
+    <toRun name="flask" type="ShConfigurationType" />
+    <toRun name="CarPlateIdentificationApplication" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

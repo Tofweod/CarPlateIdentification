@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Plate Identification</title>
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: auto;
+            gap: 50px;
+            padding: 20px;
+            height: 100vh;
+        }
+        .grid-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            width: 640px;
+            height: 510px;
+        }
+        .grid-item img {
+            width: 640px;
+            height: 480px;
+            object-fit: cover;
+        }
+        .caption {
+            width: 100px;
+            height: 20px;
+            text-align: left;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            border-radius: 3px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .centered-content {
+            position: relative;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 50px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<h1 th:text="${title}"></h1>
+<div style="text-align: left">
+    <a href="/reset"><button>Reset</button></a>
+</div>
+<div class="grid-container">
+    <div class="grid-item">
+        <div class="caption">Raw Data</div>
+        <img th:src="${rawUrl}" alt="raw data"/>
+    </div>
+    <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
+        <div class="caption">Pre-progress</div>
+        <img th:src="${preUrl}" alt="pre result"/>
+    </div>
+    <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
+        <div class="caption">YOLO split</div>
+        <img th:src="${yoloUrl}" alt="yolo result"/>
+    </div>
+    <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
+        <div class="caption" >Result</div>
+        <p th:text="${ocrResult}" class="centered-content">test txt</p>
+    </div>
+</div>
+
+</body>
+</html>
