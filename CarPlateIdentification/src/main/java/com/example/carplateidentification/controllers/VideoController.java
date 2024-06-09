@@ -1,10 +1,9 @@
 package com.example.carplateidentification.controllers;
 
+import com.example.carplateidentification.config.FlaskConfig;
 import com.example.carplateidentification.pojo.OcrResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,16 +17,18 @@ public class VideoController {
 
 
     private final RestTemplate restTemplate;
+    private final String flaskUrl;
 
     @Autowired
-    public VideoController(RestTemplateBuilder builder) {
+    public VideoController(RestTemplateBuilder builder, FlaskConfig flaskConfig) {
         this.restTemplate = builder.build();
+        flaskUrl = "http://" +flaskConfig.getHost()+":"+ flaskConfig.getPort();
     }
 
 
     @GetMapping("/testVideo")
     public String testVideo(Model model) {
-        model.addAttribute("videoUrl","http://localhost:5001/testVideo");
+        model.addAttribute("videoUrl",flaskUrl+"/testVideo");
         return "testVideo";
     }
 
@@ -43,7 +44,7 @@ public class VideoController {
         model.addAttribute("title","Raw Video");
         model.addAttribute("showResult",false);
 
-        model.addAttribute("rawUrl","http://localhost:5001/testVideo");
+        model.addAttribute("rawUrl",flaskUrl+"/testVideo");
         return "result";
     }
 
@@ -55,18 +56,19 @@ public class VideoController {
         model.addAttribute("title","Result");
         model.addAttribute("showResult",true);
 
-        model.addAttribute("rawUrl","http://localhost:5001/testVideo");
-        model.addAttribute("preUrl","http://localhost:5001/preResult");
-        model.addAttribute("yoloUrl","http://localhost:5001/yoloResult");
+        model.addAttribute("rawUrl",flaskUrl+"/testVideo");
+        model.addAttribute("preUrl",flaskUrl+"/preResult");
+        model.addAttribute("yoloUrl",flaskUrl+"/yoloResult");
 
-        String ocrUrl = "http://localhost:5001/ocrResult";
+
+        String ocrUrl = flaskUrl + "/ocrResult";
         OcrResult ocrResult = restTemplate.getForObject(ocrUrl,OcrResult.class);
         model.addAttribute("ocrResult", Objects.requireNonNull(ocrResult).getResult());
         return "result";
     }
 
     @GetMapping("/reset")
-    public String reset(Model model) {
+    public String reset() {
         return "redirect:/";
     }
 

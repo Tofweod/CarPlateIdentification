@@ -3,14 +3,8 @@ import easyocr
 
 app = Flask(__name__)
 
-reader = None
+reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
 
 host = '0.0.0.0'
 
 port = 5001
-
-
-def init_back_end():
-    global reader
-    reader = easyocr.Reader(['en', 'ch_sim'])
-
