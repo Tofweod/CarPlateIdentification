@@ -54,7 +54,7 @@ public class VideoController {
     @GetMapping("/startVideo")
     @ResponseBody
     public String startVideo() {
-        return flaskUrl+"/testVideo";
+        return flaskUrl+"/rawVideo";
     }
 
 
@@ -77,6 +77,8 @@ public class VideoController {
 
     @GetMapping("/reset")
     public String reset() {
+        String url = flaskUrl + "/reset";
+        restTemplate.getForObject(url,String.class);
         return "redirect:/";
     }
 

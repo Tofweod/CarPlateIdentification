@@ -5,12 +5,12 @@ import config as cfg
 
 
 @app.route("/")
-def index():
+def index() -> str:
     return render_template('index.html')
 
 
 @app.route("/getStartVal",methods=["POST"])
-def get_start_val():
+def get_start_val() -> tuple | None:
     data = request.get_json()
     cfg.startVideo = data.get("start")
     return '', 200

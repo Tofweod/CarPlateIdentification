@@ -3,26 +3,26 @@ import numpy as np
 from init import *
 from flask import Response, jsonify
 import cv2
+from videoprobe import VideoStableProbe
 
 videoFinished: bool = False
 
 current_frame: np.array = None
 
 
-# TODO:
-def __probe_video_stable(frame_queue: list[np.array], threshold: float, method) -> bool:
-    return True
-
-
-def __generate_video_stream() -> bytes:
-    cap = cv2.VideoCapture('test/test.mp4')
+def __generate_video_stream(url:str | int =None) -> bytes:
+    if url :
+        cap = cv2.VideoCapture(url)
+    else:
+        cap = cv2.VideoCapture(1)
+    cap.set(cv2.CAP_PROP_FPS,60)
+    print("fps:",cap.get(cv2.CAP_PROP_FPS))
+    probe = VideoStableProbe(cap)
     global current_frame
     while cap.isOpened():
-        success, current_frame = cap.read()
-        # TODO: implement __probe_video_stable
-        # if __probe_video_stable():
-        #     break;
-        if not success:
+        current_frame,stable = probe()
+        if stable:
+            finish()
             break
         _, buffer = cv2.imencode('.jpg', current_frame)
         frame_bytes = buffer.tobytes()
@@ -31,7 +31,7 @@ def __generate_video_stream() -> bytes:
     cap.release()
 
 
-def __generate_picture_stream(cv_img: np.array) -> bytes:
+def __generate_picture_stream(cv_img: np.ndarray) -> bytes:
     ret_val, buffer = cv2.imencode('.jpg', cv_img)
     if ret_val:
         frame = buffer.tobytes()
@@ -41,6 +41,10 @@ def __generate_picture_stream(cv_img: np.array) -> bytes:
 
 @app.route('/testVideo')
 def test_video() -> Response:
+    return Response(__generate_video_stream('test/test.mp4'), mimetype="multipart/x-mixed-replace; boundary=frame")
+
+@app.route('/rawVideo')
+def raw_video() -> Response:
     return Response(__generate_video_stream(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
@@ -81,4 +85,12 @@ def finish() -> tuple | None:
     global videoFinished
     videoFinished = True
     return " ", 200
+
+
+@app.route('/reset')
+def reset() -> tuple | None:
+    print("flask has been reset")
+    global videoFinished
+    videoFinished = False
+    return " ",200
 
