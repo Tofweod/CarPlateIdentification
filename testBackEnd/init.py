@@ -1,9 +1,6 @@
 from flask import Flask
-import easyocr
 
-app = Flask(__name__)
-
-reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+app = Flask(__name__, template_folder="resource/templates")
 
 host = '0.0.0.0'
 

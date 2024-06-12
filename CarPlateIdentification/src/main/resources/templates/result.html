@@ -4,6 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Plate Identification</title>
+    <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
+    <script>
+
+        window.onload = function () {
+            let elem = localStorage.getItem("base64ImgItem")
+            finish = localStorage.getItem("finish")
+            if(elem) {
+                $("#raw_video").append(elem)
+                localStorage.removeItem("base64ImgItem")
+                localStorage.removeItem("finish")
+            }
+        }
+
+        let start = false;
+        let finish = false;
+
+        $(document).ready(function (){
+            $("#start_btn").click(function (){
+                if(finish) {
+                    alert("video progress has done,please reset")
+                    return
+                }
+                $.ajax({
+                    url:"/startVideo",
+                    type:"GET",
+                    success:function (response) {
+                        start = true
+                        $("#raw_video").append('<img src="'+response+'" alt="raw data"/>');
+                    },
+                    error:function(xhr,status,error){
+                        alert(error);
+                    }
+                })
+            })
+        })
+
+
+        function checkFinished() {
+            if(!start || finish){
+               return
+            }
+            fetch("/finish")
+                .then(response => response.json())
+                .then(data => {
+                    finish = data.finish
+                    let base64Img = data.baseImg
+                    if(finish === true){
+                        let elem = '<img alt="raw data" src="data:image/jpeg;base64,'+base64Img+'" />'
+                        localStorage.setItem("base64ImgItem",elem)
+                        localStorage.setItem("finish",finish)
+                        location.href = "/result"
+                    }
+                    else{
+                        console.log("no")
+                    }
+                })
+        }
+
+        setInterval(checkFinished,5000)
+
+    </script>
     <style>
         .grid-container {
             display: grid;
@@ -57,12 +118,13 @@
 <body>
 <h1 th:text="${title}"></h1>
 <div style="text-align: left">
+    <button id="start_btn">Start</button>
     <a href="/reset"><button>Reset</button></a>
 </div>
 <div class="grid-container">
-    <div class="grid-item">
+    <div id="raw_video" class="grid-item">
         <div class="caption">Raw Data</div>
-        <img th:src="${rawUrl}" alt="raw data"/>
+<!--        <img th:src="${rawUrl}" alt="raw data"/>-->
     </div>
     <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
         <div class="caption">Pre-progress</div>
