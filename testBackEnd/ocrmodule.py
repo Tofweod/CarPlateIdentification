@@ -1,7 +1,8 @@
 from init import *
-from flask import jsonify
+from flask import jsonify,Response
 import cv2
 import hyperlpr3 as lpr3
+import numpy as np
 
 
 cather = lpr3.LicensePlateCatcher()
@@ -16,7 +17,7 @@ class OCRResult:
         4: "其他特殊车牌"
     }
 
-    def __init__(self, text, confidence, plate_type, bounding_box):
+    def __init__(self, text, confidence, plate_type, bounding_box) -> None:
         self.text = str(text)
         self.confidence = float(confidence)
         self.plate_type = int(plate_type)
@@ -25,11 +26,11 @@ class OCRResult:
             {"rb": [int(bounding_box[2]), int(bounding_box[3])]},
         ]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f"OCRResult(bounding_box={self.bounding_box}, text='{self.text}',"
                 f" confidence={self.confidence}, type={OCRResult.plate_name[self.plate_type]})")
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "text": self.text,
             "confidence": self.confidence,
@@ -38,8 +39,7 @@ class OCRResult:
         }
 
 
-def __ocr_detect(image):
-    img = cv2.imread(image)
+def __ocr_detect(img: np.array) -> list[OCRResult]:
     results = cather(img)
     ocr_results = [OCRResult(text, confidence, plate_type, bounding_box)
                    for text, confidence, plate_type, bounding_box in results]
@@ -47,16 +47,17 @@ def __ocr_detect(image):
 
 
 @app.route('/ocrTest')
-def ocr_test():
+def ocr_test() -> Response:
     ocr_objs = []
     for i in range(1, 7):
-        img = "test/test" + str(i) + ".png"
+        image = "test/test" + str(i) + ".png"
+        img = cv2.imread(image)
         ocr_objs += __ocr_detect(img)
     return jsonify([obj.to_dict() for obj in ocr_objs])
 
 
 @app.route("/ocrResult")
-def ocr_result():
+def ocr_result() -> Response:
     return jsonify({
         "result": "test context"
     })

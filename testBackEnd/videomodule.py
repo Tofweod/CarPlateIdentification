@@ -1,20 +1,20 @@
 import base64
-
+import numpy as np
 from init import *
 from flask import Response, jsonify
 import cv2
 
-videoFinished = False
+videoFinished: bool = False
 
-current_frame = None
+current_frame: np.array = None
 
 
 # TODO:
-def __probe_video_stable(frame_queue, threshold, method):
+def __probe_video_stable(frame_queue: list[np.array], threshold: float, method) -> bool:
     return True
 
 
-def __generate_video_stream():
+def __generate_video_stream() -> bytes:
     cap = cv2.VideoCapture('test/test.mp4')
     global current_frame
     while cap.isOpened():
@@ -31,7 +31,7 @@ def __generate_video_stream():
     cap.release()
 
 
-def __generate_picture_stream(cv_img):
+def __generate_picture_stream(cv_img: np.array) -> bytes:
     ret_val, buffer = cv2.imencode('.jpg', cv_img)
     if ret_val:
         frame = buffer.tobytes()
@@ -40,29 +40,25 @@ def __generate_picture_stream(cv_img):
 
 
 @app.route('/testVideo')
-def test_video():
+def test_video() -> Response:
     return Response(__generate_video_stream(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 @app.route('/preResult')
-def pre_result():
+def pre_result() -> Response:
     # TODO:here we just send picture for test, pre-progress need to be done and generate numpy of pre-handled picture
-    img = cv2.imread('test/test.jpg')
-    response = Response(__generate_picture_stream(img), mimetype="multipart/x-mixed-replace; boundary=frame")
-    del img
+    response = Response(__generate_picture_stream(current_frame), mimetype="multipart/x-mixed-replace; boundary=frame")
     return response
 
 
 @app.route('/yoloResult')
-def yolo_result():
-    img = cv2.imread('test/test.jpg')
-    response = Response(__generate_picture_stream(img), mimetype="multipart/x-mixed-replace; boundary=frame")
-    del img
+def yolo_result() -> Response:
+    response = Response(__generate_picture_stream(current_frame), mimetype="multipart/x-mixed-replace; boundary=frame")
     return response
 
 
 @app.route('/sendFinished')
-def send_finished():
+def send_finished() -> Response:
     global videoFinished
     global current_frame
     if not videoFinished:
@@ -81,7 +77,7 @@ def send_finished():
 
 # add route for test
 @app.route('/finish')
-def finish():
+def finish() -> tuple | None:
     global videoFinished
     videoFinished = True
     return " ", 200
