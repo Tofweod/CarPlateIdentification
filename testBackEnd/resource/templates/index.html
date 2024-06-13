@@ -6,7 +6,28 @@
     <title>Home Page</title>
 </head>
 <body>
-<h1>Welcome to the Home Page!</h1>
-<p>This is the index page of your Flask application.</p>
+<h1>Car Plate Identification Server</h1>
+<div>
+    <p>Spring Boot URL: {{ spring_boot_url }}</p>
+    <p>Spring Boot Port: {{ spring_boot_port }}</p>
+    <p>Video During Time: {{ video_during_time }}</p>
+    <p>Threshold: {{ threshold }}</p>
+    <p>Method: {{ method }}</p>
+    <a href="/update">更新设置</a>
+</div>
+
+<div>
+    <div>Video Stability Probe <button onclick="refresh_frame()">refresh</button></div>
+    <div>
+        <iframe id="iframe_container" src="/getProbeResult" scrolling="yes"></iframe>
+    </div>
+
+    <script>
+        function refresh_frame(){
+            let iframe = document.getElementById('iframe_container');
+            iframe.src = iframe.src
+        }
+    </script>
+</div>
 </body>
 </html>

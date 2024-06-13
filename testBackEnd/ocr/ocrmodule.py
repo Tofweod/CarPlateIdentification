@@ -1,9 +1,9 @@
-from init import *
-from flask import jsonify,Response
+from flask import Blueprint, jsonify, Response
 import cv2
 import hyperlpr3 as lpr3
 import numpy as np
 
+ocr_module = Blueprint('ocr_module', __name__)
 
 cather = lpr3.LicensePlateCatcher()
 
@@ -46,7 +46,7 @@ def __ocr_detect(img: np.array) -> list[OCRResult]:
     return ocr_results
 
 
-@app.route('/ocrTest')
+@ocr_module.route('/ocrTest')
 def ocr_test() -> Response:
     ocr_objs = []
     for i in range(1, 7):
@@ -56,7 +56,7 @@ def ocr_test() -> Response:
     return jsonify([obj.to_dict() for obj in ocr_objs])
 
 
-@app.route("/ocrResult")
+@ocr_module.route("/ocrResult")
 def ocr_result() -> Response:
     return jsonify({
         "result": "test context"
