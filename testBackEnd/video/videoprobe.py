@@ -47,14 +47,38 @@ class VideoStableProbe:
         self.during = during
         self.threshold = threshold
         self.method = method
-        self.fea_period = 0
+        self.stable = False
         self.__deque = deque()
         self.__maxSize = math.ceil(self.during * cap.get(cv2.CAP_PROP_FPS))
         self.__prev_frame = None
         self.__cur_frame = None
+        self.__fea_listeners = []
+        self.__fea_period = 0
 
-    def cap_available(self) -> bool:
-        return self.cap.isOpened()
+    def __notify_fea_listeners(self) -> None:
+        for listener, args, kwargs in self.__fea_listeners:
+            listener(*args, **kwargs)
+
+    def add_fea_listener(self, listener, *args, **kwargs) -> None:
+        self.__fea_listeners.append((listener, args, kwargs))
+
+    def fea_listener_size(self) -> int:
+        return len(self.__fea_listeners)
+
+    @property
+    def fea_period(self) -> float:
+        return self.__fea_period
+
+    @fea_period.setter
+    def fea_period(self, value) -> None:
+        if value != self.fea_period:
+            self.__fea_period = value
+            self.__notify_fea_listeners()
+
+    def available(self) -> bool:
+        if not self.stable:
+            return self.cap.isOpened()
+        return False
 
     @staticmethod
     def _get_gauss_sharpen_gray(frame: np.ndarray) -> np.ndarray:
@@ -90,7 +114,7 @@ class VideoStableProbe:
             self.__deque.append(fea_val)
 
             self.fea_period = sum(self.__deque) / len(self.__deque)
-            # print(f"val:{self.fea_period},maxsize:{self.__maxSize},cursize:{len(self.__deque)}", end=' ')
+            # print(f"val:{self.fea_period},maxsize:{self.__maxSize},cursize:{len(self.__deque)}")
 
             return self.fea_period <= threshold and len(self.__deque) >= self.__maxSize
 
@@ -133,5 +157,5 @@ class VideoStableProbe:
         return True, frame_diff, prev_frame
 
     def __call__(self) -> Tuple[np.array, bool]:
-        is_stable = self.__probe_video_stable(threshold=self.threshold, method=self.method)
-        return self.__cur_frame, is_stable
+        self.stable = self.__probe_video_stable(threshold=self.threshold, method=self.method)
+        return self.__cur_frame, self.stable

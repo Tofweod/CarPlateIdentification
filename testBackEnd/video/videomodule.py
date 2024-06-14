@@ -1,10 +1,10 @@
 import base64
+import time
 import numpy as np
 from flask import Blueprint, Response, jsonify
 import cv2
 from video.videoprobe import VideoStableProbe
 import config as cfg
-import time
 
 video_module = Blueprint('video_module', __name__)
 
@@ -13,6 +13,20 @@ videoFinished: bool = False
 current_frame: np.ndarray
 
 probe: VideoStableProbe | None = None
+
+
+@video_module.route('/probeResult')
+def probe_result() -> Response:
+    global probe
+    if probe is None:
+        return Response("No data stream", content_type='text/plain')
+
+    def result_stream():
+        while probe.available():
+            time.sleep(0.5)
+            yield f"data: {probe.fea_period}\n\n"
+
+    return Response(result_stream(), content_type='text/event-stream')
 
 
 def __generate_video_stream(url: str | int = None) -> bytes:
@@ -26,15 +40,18 @@ def __generate_video_stream(url: str | int = None) -> bytes:
     global current_frame
     global probe
     probe = VideoStableProbe(cap, cfg.video_during_time, cfg.threshold)
-    while probe.cap_available():
+    while probe.available():
         current_frame, stable = probe()
-        if stable:
-            finish()
-            break
+        # if stable:
+        #     finish()
+        #     break
+
+        # TODO: add yolo bound into current_frame
         _, buffer = cv2.imencode('.jpg', current_frame)
         frame_bytes = buffer.tobytes()
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+    finish()
     cap.release()
 
 
@@ -44,21 +61,6 @@ def __generate_picture_stream(cv_img: np.ndarray) -> bytes:
         frame = buffer.tobytes()
         return (b'--frame\r\n'
                 b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-
-@video_module.route('/getProbeResult')
-def probe_result() -> Response:
-    def result_stream() -> str:
-        while probe.cap_available():
-            time.sleep(1)
-            val = probe.fea_period
-            yield f"data: {val}\n\n"
-
-    global probe
-    if probe is None:
-        return Response("No data stream", content_type="text/plain")
-
-    return Response(result_stream(), content_type='text/event-stream')
 
 
 @video_module.route('/testVideo')
