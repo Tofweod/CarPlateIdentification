@@ -65,7 +65,8 @@ def __generate_picture_stream(cv_img: np.ndarray) -> bytes:
 
 @video_module.route('/testVideo')
 def test_video() -> Response:
-    return Response(__generate_video_stream('test/test.mp4'), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(__generate_video_stream("test/test.mp4"),
+                    mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 @video_module.route('/rawVideo')

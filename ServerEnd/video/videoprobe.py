@@ -48,7 +48,7 @@ class VideoStableProbe:
         self.threshold = threshold
         self.method = method
         self.stable = False
-        self.__deque = deque()
+        self.__frame_queue = deque()
         self.__maxSize = math.ceil(self.during * cap.get(cv2.CAP_PROP_FPS))
         self.__prev_frame = None
         self.__cur_frame = None
@@ -92,7 +92,7 @@ class VideoStableProbe:
         return cv2.cvtColor(sharpen, cv2.COLOR_BGR2GRAY)
 
     def __probe_video_stable(self, threshold: float, method: ProbeMethod) -> bool:
-        if len(self.__deque) == 0:
+        if len(self.__frame_queue) == 0:
             ret = False
             while not ret:
                 ret, frame = self.cap.read()
@@ -109,14 +109,14 @@ class VideoStableProbe:
             if not success:
                 continue
 
-            if len(self.__deque) > self.__maxSize:
-                self.__deque.popleft()
-            self.__deque.append(fea_val)
+            if len(self.__frame_queue) > self.__maxSize:
+                self.__frame_queue.popleft()
+            self.__frame_queue.append(fea_val)
 
-            self.fea_period = sum(self.__deque) / len(self.__deque)
+            self.fea_period = sum(self.__frame_queue) / len(self.__frame_queue)
             # print(f"val:{self.fea_period},maxsize:{self.__maxSize},cursize:{len(self.__deque)}")
 
-            return self.fea_period <= threshold and len(self.__deque) >= self.__maxSize
+            return self.fea_period <= threshold and len(self.__frame_queue) >= self.__maxSize
 
     @staticmethod
     def __option_flow_pyrLK(prev_frame: np.ndarray, cur_frame: np.ndarray) -> Tuple[bool, float, np.ndarray]:
