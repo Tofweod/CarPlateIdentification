@@ -35,8 +35,6 @@ def __generate_video_stream(url: str | int = None) -> bytes:
     else:
         cap = cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FPS, 60)
-    print("fps:", cap.get(cv2.CAP_PROP_FPS))
-    print("threshold:", cfg.threshold)
     global current_frame
     global probe
     probe = VideoStableProbe(cap, cfg.video_during_time, cfg.threshold)

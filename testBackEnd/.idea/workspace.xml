@@ -5,22 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bf6806a4-e94e-4d94-940a-e83c7dc0d615" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.idea/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/testBackEnd.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.idea/ServerEnd.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ocr/ocrmodule.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/ocr/ocrmodule.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resource/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/resource/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resource/templates/update.html" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/resource/templates/update.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/video/videomodule.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/video/videomodule.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/video/videoprobe.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/video/videoprobe.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/video/videoprogress.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/video/videoprogress.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../ServerEnd/video/videomodule.py" beforeDir="false" afterPath="$PROJECT_DIR$/../ServerEnd/video/videomodule.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -166,7 +151,7 @@
       <workItem from="1718349802452" duration="2977000" />
       <workItem from="1718363356511" duration="1416000" />
       <workItem from="1718372581336" duration="347000" />
-      <workItem from="1718372954201" duration="1956000" />
+      <workItem from="1718372954201" duration="2562000" />
     </task>
     <servers />
   </component>
