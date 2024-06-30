@@ -54,6 +54,8 @@ def detect(img, width, height):
 
 
 def result_filter(confidence, size, boxes, confidences, idxs):
+    if len(boxes) == 0 or len(confidences) == 0 or len(idxs) == 0:
+        return -1, [], []
     max_square = 0
     max_idx = idxs[0]
 
@@ -66,4 +68,3 @@ def result_filter(confidence, size, boxes, confidences, idxs):
     if confidences[max_idx] > confidence and boxes[max_idx][2] * boxes[max_idx][3] > size:
         return max_idx, boxes[max_idx], confidences[max_idx]
     return -1, [], []
-

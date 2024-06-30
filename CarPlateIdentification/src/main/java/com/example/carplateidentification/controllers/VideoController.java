@@ -69,7 +69,9 @@ public class VideoController {
 
         String ocrUrl = flaskUrl + "/ocrResult";
         OcrResult ocrResult = restTemplate.getForObject(ocrUrl,OcrResult.class);
+        System.out.println(ocrResult);
         model.addAttribute("ocrResult", Objects.requireNonNull(ocrResult).getResult());
+        model.addAttribute("ocrStatus",Objects.requireNonNull(ocrResult).getStatus());
         return "result";
     }
 

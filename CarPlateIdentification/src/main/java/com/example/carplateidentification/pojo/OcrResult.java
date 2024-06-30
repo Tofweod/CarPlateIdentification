@@ -7,4 +7,10 @@ import lombok.Setter;
 @Getter
 public class OcrResult {
     private String result;
+    private Integer status;
+
+    @Override
+    public String toString() {
+        return "OcrResult [result=" + result + ", status=" + status + "]";
+    }
 }

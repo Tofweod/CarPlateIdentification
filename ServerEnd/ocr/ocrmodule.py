@@ -32,11 +32,11 @@ def ocr_test() -> Response:
 def ocr_result() -> Response:
     global result
     if result is None:
-        return jsonify({"result": "no result"})
+        return jsonify({"result": "no result", "status": 1})
     if not check_plate(result.text, result.plate_type):
-        return jsonify({"result": "wrong plate"})
+        return jsonify({"result": "wrong plate", "status": 1})
 
-    return jsonify({"result": f"result:{result.text}<br>confidence:{result.confidence}"})
+    return jsonify({"result": f"result:{result.text}<br>confidence:{result.confidence}", "status": 0})
 
 
 def set_ocr_results(img: np.ndarray, plate_type: int) -> None:

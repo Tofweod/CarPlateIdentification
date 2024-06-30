@@ -5,15 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Car Plate Identification</title>
     <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
-    <script>
+    <script th:inline="javascript">
         window.onload = function () {
             let elem = localStorage.getItem("base64ImgItem")
-            finish = localStorage.getItem("finish")
             if(elem) {
                 $("#raw_video").append(elem)
                 localStorage.removeItem("base64ImgItem")
                 localStorage.removeItem("finish")
+                localStorage.removeItem("autostart")
             }
+            finish = localStorage.getItem("finish")
+            let autostart = localStorage.getItem("autostart")
+            if(autostart != null && autostart === "true") {
+                $("#start_btn").click();
+            }
+
+            let ocrStatus = document.getElementById('ocrStatus').innerText;
+            console.log(ocrStatus)
+            if (ocrStatus === "1") {
+                setTimeout(()=>{
+                    document.querySelector('a[href="/reset"] button').click();
+                },3000)
+                localStorage.setItem("autostart","true")
+            }
+            else if(ocrStatus === "0") {
+                setTimeout(()=>{
+                    document.querySelector('a[href="/reset"] button').click();
+                },10000)
+                localStorage.setItem("autostart","true")
+            }
+
         }
 
         let start = false;
@@ -54,13 +75,12 @@
                         localStorage.setItem("finish",finish)
                         location.href = "/result"
                     }
-                    else{
-                        console.log("no")
-                    }
                 })
         }
 
-        setInterval(checkFinished,5000)
+
+
+        setInterval(checkFinished,2000)
     </script>
     <style>
         .grid-container {
@@ -115,7 +135,7 @@
 <body>
 <h1 th:text="${title}"></h1>
 <div style="text-align: left">
-    <button id="start_btn">Start</button>
+    <button id="start_btn" class="hidden">Start</button>
     <a href="/reset"><button>Reset</button></a>
 </div>
 <div class="grid-container">
@@ -133,6 +153,7 @@
     <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
         <div class="caption">Result</div>
         <p th:utext="${ocrResult}" class="centered-content">test txt</p>
+        <p id="ocrStatus" th:text="${ocrStatus}" class="hidden"></p>
     </div>
 </div>
 

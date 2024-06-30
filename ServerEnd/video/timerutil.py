@@ -1,34 +1,26 @@
-import multiprocessing
-import time
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
-class Timer:
-    def __init__(self, timeout, callback, *args, **kwargs):
-        self.timeout = timeout
-        self.callback = callback
-        self.args = args
-        self.kwargs = kwargs
-        self.timer_progress = None
-        self.lock = multiprocessing.Lock()
-        self.__start_timer()
+class MultiTimer:
+    def __init__(self):
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.start()
+        self.jobs = {}
+        self.callbacks = {}
 
-    def __timer_target(self):
-        time.sleep(self.timeout)
-        with self.lock:
-            self.callback(*self.args, **self.kwargs)
+    def timeout_task(self, timer_id):
+        if timer_id in self.callbacks:
+            self.callbacks[timer_id]()  # 调用回调函数
 
-    def __start_timer(self):
-        self.timer_progress = multiprocessing.Process(target=self.__timer_target)
+    def start_timer(self, timer_id, interval, callback):
+        self.stop_timer(timer_id)  # 如果已有任务，先停止
+        self.callbacks[timer_id] = callback  # 保存回调函数
+        self.jobs[timer_id] = self.scheduler.add_job(self.timeout_task, 'interval', seconds=interval, args=[timer_id])
 
-    def reset(self):
-        with self.lock:
-            if self.timer_progress is not None and self.timer_progress.is_alive():
-                self.timer_progress.terminate()
-            self.__start_timer()
+    def stop_timer(self, timer_id):
+        if timer_id in self.jobs:
+            self.jobs[timer_id].remove()
+            del self.jobs[timer_id]
 
-    def cancel(self):
-        with self.lock:
-            if self.timer_progress is not None and self.timer_progress.is_alive():
-                self.timer_progress.terminate()
-                self.timer_progress = None
-
+    def reset_timer(self, timer_id, interval):
+        self.start_timer(timer_id, interval,self.callbacks[timer_id])

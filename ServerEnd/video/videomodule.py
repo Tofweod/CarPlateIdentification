@@ -1,5 +1,4 @@
 import base64
-import multiprocessing
 import time
 import numpy as np
 from flask import Blueprint, Response, jsonify
@@ -9,13 +8,15 @@ import video.videoprogress as vpg
 import config as cfg
 from yolo.utils import detect, draw_boxes, result_filter
 from ocr.ocrmodule import set_ocr_results, clear_ocr_results
-from video.timerutil import Timer
+from video.timerutil import MultiTimer
+
+multi_timer = MultiTimer()
 
 video_module = Blueprint('video_module', __name__)
 
 videoFinished: bool = False
 
-is_timeout = multiprocessing.Value('b', False)
+yolo_is_timeout: bool = False
 
 current_frame: np.ndarray
 yolo_frame: np.ndarray
@@ -43,6 +44,11 @@ def __frame2bytes(frame: np.ndarray, _format: str) -> bytes:
     return buffer.tobytes()
 
 
+def yolo_timeout():
+    global yolo_is_timeout
+    yolo_is_timeout = True
+
+
 def __generate_video_stream(url: str | int = None) -> bytes:
     if url:
         cap = cv2.VideoCapture(url)
@@ -53,25 +59,23 @@ def __generate_video_stream(url: str | int = None) -> bytes:
     global yolo_frame
     global pre_frame
     global probe
-    global is_timeout
     probe = VideoStableProbe(cap, cfg.video_during_time, cfg.threshold)
-    yolo_valid: bool = False
 
-    def on_timeout():
-        global is_timeout
-        is_timeout.value = True
-
-    timer = Timer(cfg.timeout, on_timeout, is_timeout)
-    while cap.isOpened() and not yolo_valid:
+    multi_timer.start_timer("yolo_timer", cfg.yolo_timeout, yolo_timeout)
+    stable = False
+    while cap.isOpened():
         ret, current_frame = cap.read()
         if not ret:
             continue
         # pre-progress for stable test
         vpg_frame = vpg.get_gauss_sharpen_gray(current_frame)
         # test stable
-        stable = probe(vpg_frame)
-        if stable or is_timeout.value:
-            timer.reset()
+        if vpg_frame is not None:
+            stable = probe(vpg_frame)
+        global yolo_is_timeout
+        if stable or yolo_is_timeout:
+            multi_timer.reset_timer("yolo_timer", cfg.yolo_timeout)
+            yolo_is_timeout = False
             boxes, confidences, class_ids, idxs = detect(current_frame, current_frame.shape[1], current_frame.shape[0])
             # result_filter 通过Ioc和面积过滤yolo结果，选择面积最大的plate
             max_idx, box, confidence = result_filter(cfg.yolo_confidence, cfg.yolo_size, boxes, confidences, idxs)
@@ -84,13 +88,12 @@ def __generate_video_stream(url: str | int = None) -> bytes:
                 current_frame = draw_boxes(current_frame, boxes, confidences, class_ids, idxs)
                 set_ocr_results(pre_frame, class_ids[max_idx])
                 finish()
-                yolo_valid = True
             else:
                 probe.clear()
 
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + __frame2bytes(current_frame, ".jpg") + b'\r\n')
-    timer.cancel()
+    multi_timer.stop_timer("yolo_timer")
     cap.release()
 
 
@@ -110,7 +113,7 @@ def test_video() -> Response:
 
 @video_module.route('/rawVideo')
 def raw_video() -> Response:
-    return Response(__generate_video_stream("test/yolo_test.mp4"), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(__generate_video_stream(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 @video_module.route('/preResult')
