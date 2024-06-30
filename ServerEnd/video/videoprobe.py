@@ -43,7 +43,6 @@ class VideoStableProbe:
 
     def __init__(self, cap: cv2.VideoCapture, during: float = cfg.video_during_time, threshold: float = cfg.threshold,
                  method: ProbeMethod = ProbeMethod.FRAMEDIFF) -> None:
-        self.cap = cap
         self.during = during
         self.threshold = threshold
         self.method = method
@@ -65,6 +64,11 @@ class VideoStableProbe:
     def fea_listener_size(self) -> int:
         return len(self.__fea_listeners)
 
+    def clear(self):
+        self.stable = False
+        self.__frame_queue.clear()
+        self.__fea_period = 0
+
     @property
     def fea_period(self) -> float:
         return self.__fea_period
@@ -75,34 +79,16 @@ class VideoStableProbe:
             self.__fea_period = value
             self.__notify_fea_listeners()
 
-    def available(self) -> bool:
-        if not self.stable:
-            return self.cap.isOpened()
-        return False
-
-    @staticmethod
-    def _get_gauss_sharpen_gray(frame: np.ndarray) -> np.ndarray:
-        gaussian = cv2.GaussianBlur(frame, (5, 5), 0)
-        sharpen_kernel = np.array([[0, -1, 0],
-                                   [-1, 5, -1],
-                                   [0, -1, 0]])
-
-        sharpen = cv2.filter2D(gaussian, -1, sharpen_kernel)
-
-        return cv2.cvtColor(sharpen, cv2.COLOR_BGR2GRAY)
+    # def available(self) -> bool:
+    #     if not self.stable:
+    #         return self.cap.isOpened()
+    #     return False
 
     def __probe_video_stable(self, threshold: float, method: ProbeMethod) -> bool:
         if len(self.__frame_queue) == 0:
-            ret = False
-            while not ret:
-                ret, frame = self.cap.read()
-                self.__prev_frame = self._get_gauss_sharpen_gray(frame)
+            self.__prev_frame = self.__cur_frame.copy()
 
         while True:
-            ret, self.__cur_frame = self.cap.read()
-            if not ret:
-                continue
-
             success, fea_val, self.__prev_frame = VideoStableProbe.calc_frame_diff(method,
                                                                                    self.__prev_frame, self.__cur_frame)
 
@@ -120,22 +106,21 @@ class VideoStableProbe:
 
     @staticmethod
     def __option_flow_pyrLK(prev_frame: np.ndarray, cur_frame: np.ndarray) -> Tuple[bool, float, np.ndarray]:
-        gray = VideoStableProbe._get_gauss_sharpen_gray(cur_frame)
         p0 = cv2.goodFeaturesToTrack(prev_frame, maxCorners=100,
                                      qualityLevel=0.3,
                                      minDistance=7,
                                      blockSize=7)
 
         if p0 is None:
-            prev_frame = gray.copy()
+            prev_frame = cur_frame.copy()
             return False, 0, prev_frame
 
         next_pts = np.zeros_like(p0)
-        p1, st, err = cv2.calcOpticalFlowPyrLK(prev_frame, gray, p0, next_pts,
+        p1, st, err = cv2.calcOpticalFlowPyrLK(prev_frame, cur_frame, p0, next_pts,
                                                winSize=(15, 15),
                                                maxLevel=2,
                                                criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-        prev_frame = gray.copy()
+        prev_frame = cur_frame.copy()
 
         if p1 is None:
             return False, 0, prev_frame
@@ -151,11 +136,11 @@ class VideoStableProbe:
 
     @staticmethod
     def __frame_diff(prev_frame: np.ndarray, cur_frame: np.ndarray) -> Tuple[bool, float, np.ndarray]:
-        gray = VideoStableProbe._get_gauss_sharpen_gray(cur_frame)
-        frame_diff = np.average(cv2.absdiff(prev_frame, gray))
-        prev_frame = gray.copy()
+        frame_diff = np.average(cv2.absdiff(prev_frame, cur_frame))
+        prev_frame = cur_frame.copy()
         return True, frame_diff, prev_frame
 
-    def __call__(self) -> Tuple[np.array, bool]:
+    def __call__(self, curr_frame: np.ndarray) -> bool:
+        self.__cur_frame = curr_frame
         self.stable = self.__probe_video_stable(threshold=self.threshold, method=self.method)
-        return self.__cur_frame, self.stable
+        return self.stable

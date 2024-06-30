@@ -63,8 +63,6 @@ public class VideoController {
         model.addAttribute("title","Result");
         model.addAttribute("showResult",true);
 
-//        model.addAttribute("rawUrl",flaskUrl+"/testVideo");
-
         model.addAttribute("preUrl",flaskUrl+"/preResult");
         model.addAttribute("yoloUrl",flaskUrl+"/yoloResult");
 

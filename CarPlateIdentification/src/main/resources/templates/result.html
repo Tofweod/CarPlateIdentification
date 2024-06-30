@@ -6,7 +6,6 @@
     <title>Car Plate Identification</title>
     <script th:src="@{https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js}"></script>
     <script>
-
         window.onload = function () {
             let elem = localStorage.getItem("base64ImgItem")
             finish = localStorage.getItem("finish")
@@ -40,10 +39,9 @@
             })
         })
 
-
         function checkFinished() {
             if(!start || finish){
-               return
+                return
             }
             fetch("/finish")
                 .then(response => response.json())
@@ -63,12 +61,11 @@
         }
 
         setInterval(checkFinished,5000)
-
     </script>
     <style>
         .grid-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: 1fr;
             grid-template-rows: auto;
             gap: 50px;
             padding: 20px;
@@ -82,16 +79,16 @@
             background-color: #f0f0f0;
             border: 1px solid #ddd;
             width: 640px;
-            height: 510px;
+            height: auto;
         }
         .grid-item img {
-            width: 640px;
-            height: 480px;
+            width: auto;
+            height: auto;
+            max-width: 100%;
             object-fit: cover;
         }
         .caption {
-            width: 100px;
-            height: 20px;
+            width: auto;
             text-align: left;
             background-color: rgba(0, 0, 0, 0.5);
             color: white;
@@ -108,7 +105,7 @@
             background-color: rgba(255, 255, 255, 0.7);
             padding: 10px;
             border-radius: 5px;
-            font-size: 50px;
+            font-size: 20px;
         }
         .hidden {
             display: none;
@@ -122,21 +119,20 @@
     <a href="/reset"><button>Reset</button></a>
 </div>
 <div class="grid-container">
-    <div id="raw_video" class="grid-item">
+    <div id="raw_video" style="height: 510px;" class="grid-item">
         <div class="caption">Raw Data</div>
-<!--        <img th:src="${rawUrl}" alt="raw data"/>-->
-    </div>
-    <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
-        <div class="caption">Pre-progress</div>
-        <img th:src="${preUrl}" alt="pre result"/>
     </div>
     <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
         <div class="caption">YOLO split</div>
         <img th:src="${yoloUrl}" alt="yolo result"/>
     </div>
     <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
-        <div class="caption" >Result</div>
-        <p th:text="${ocrResult}" class="centered-content">test txt</p>
+        <div class="caption">Pre-progress</div>
+        <img th:src="${preUrl}" alt="pre result"/>
+    </div>
+    <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
+        <div class="caption">Result</div>
+        <p th:utext="${ocrResult}" class="centered-content">test txt</p>
     </div>
 </div>
 

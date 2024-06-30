@@ -1,16 +1,25 @@
 import base64
+import multiprocessing
 import time
 import numpy as np
 from flask import Blueprint, Response, jsonify
 import cv2
 from video.videoprobe import VideoStableProbe
+import video.videoprogress as vpg
 import config as cfg
+from yolo.utils import detect, draw_boxes, result_filter
+from ocr.ocrmodule import set_ocr_results, clear_ocr_results
+from video.timerutil import Timer
 
 video_module = Blueprint('video_module', __name__)
 
 videoFinished: bool = False
 
+is_timeout = multiprocessing.Value('b', False)
+
 current_frame: np.ndarray
+yolo_frame: np.ndarray
+pre_frame: np.ndarray
 
 probe: VideoStableProbe | None = None
 
@@ -22,11 +31,16 @@ def probe_result() -> Response:
         return Response("No data stream", content_type='text/plain')
 
     def result_stream():
-        while probe.available():
+        while not probe.stable:
             time.sleep(0.5)
             yield f"data: {probe.fea_period}\n\n"
 
     return Response(result_stream(), content_type='text/event-stream')
+
+
+def __frame2bytes(frame: np.ndarray, _format: str) -> bytes:
+    _, buffer = cv2.imencode(_format, frame)
+    return buffer.tobytes()
 
 
 def __generate_video_stream(url: str | int = None) -> bytes:
@@ -36,20 +50,47 @@ def __generate_video_stream(url: str | int = None) -> bytes:
         cap = cv2.VideoCapture(0)
         cap.set(cv2.CAP_PROP_FPS, 60)
     global current_frame
+    global yolo_frame
+    global pre_frame
     global probe
+    global is_timeout
     probe = VideoStableProbe(cap, cfg.video_during_time, cfg.threshold)
-    while probe.available():
-        current_frame, stable = probe()
-        # if stable:
-        #     finish()
-        #     break
+    yolo_valid: bool = False
 
-        # TODO: add yolo bound into current_frame
-        _, buffer = cv2.imencode('.jpg', current_frame)
-        frame_bytes = buffer.tobytes()
+    def on_timeout():
+        global is_timeout
+        is_timeout.value = True
+
+    timer = Timer(cfg.timeout, on_timeout, is_timeout)
+    while cap.isOpened() and not yolo_valid:
+        ret, current_frame = cap.read()
+        if not ret:
+            continue
+        # pre-progress for stable test
+        vpg_frame = vpg.get_gauss_sharpen_gray(current_frame)
+        # test stable
+        stable = probe(vpg_frame)
+        if stable or is_timeout.value:
+            timer.reset()
+            boxes, confidences, class_ids, idxs = detect(current_frame, current_frame.shape[1], current_frame.shape[0])
+            # result_filter 通过Ioc和面积过滤yolo结果，选择面积最大的plate
+            max_idx, box, confidence = result_filter(cfg.yolo_confidence, cfg.yolo_size, boxes, confidences, idxs)
+            if max_idx != -1:
+                x, y, w, h = box
+                if x <= 0 or y <= 0 or w <= 0 or h <= 0:
+                    continue
+                yolo_frame = current_frame[y:y + h, x:x + w]
+                pre_frame = vpg.progress_yolo_img(yolo_frame, class_ids[max_idx])
+                current_frame = draw_boxes(current_frame, boxes, confidences, class_ids, idxs)
+                set_ocr_results(pre_frame, class_ids[max_idx])
+                finish()
+                yolo_valid = True
+            else:
+                probe.clear()
+
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-    finish()
+               b'Content-Type: image/jpeg\r\n\r\n' + __frame2bytes(current_frame, ".jpg") + b'\r\n')
+    timer.cancel()
     cap.release()
 
 
@@ -63,25 +104,25 @@ def __generate_picture_stream(cv_img: np.ndarray) -> bytes:
 
 @video_module.route('/testVideo')
 def test_video() -> Response:
-    return Response(__generate_video_stream("test/test.mp4"),
+    return Response(__generate_video_stream("test/yolo_test.mp4"),
                     mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 @video_module.route('/rawVideo')
 def raw_video() -> Response:
-    return Response(__generate_video_stream(), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(__generate_video_stream("test/yolo_test.mp4"), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 @video_module.route('/preResult')
 def pre_result() -> Response:
-    # TODO:here we just send picture for test, pre-progress need to be done and generate numpy of pre-handled picture
-    response = Response(__generate_picture_stream(current_frame), mimetype="multipart/x-mixed-replace; boundary=frame")
+    response = Response(__generate_picture_stream(pre_frame), mimetype="multipart/x-mixed-replace; boundary=frame")
     return response
 
 
 @video_module.route('/yoloResult')
 def yolo_result() -> Response:
-    response = Response(__generate_picture_stream(current_frame), mimetype="multipart/x-mixed-replace; boundary=frame")
+    # TODO: yolo result
+    response = Response(__generate_picture_stream(yolo_frame), mimetype="multipart/x-mixed-replace; boundary=frame")
     return response
 
 
@@ -118,4 +159,8 @@ def reset() -> tuple | None:
     videoFinished = False
     global probe
     probe = None
+    global yolo_frame
+    global pre_frame
+    yolo_frame = pre_frame = None
+    clear_ocr_results()
     return " ", 200

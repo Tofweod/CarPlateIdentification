@@ -6,4 +6,6 @@ spring_boot_port = 44906
 video_during_time = 3.0
 threshold = 1.5
 method = 1
-
+timeout = 10
+yolo_confidence = 0
+yolo_size = 0
