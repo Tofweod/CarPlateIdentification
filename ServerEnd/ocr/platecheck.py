@@ -40,8 +40,9 @@ def check_plate(plate_num, label):
         return False
     if plate_num[1] not in letter_list:
         return False
-    if plate_num[2] != '·':
-        return False
+    # 不检查
+    # if plate_num[2] != '·':
+    #     return False
     car_num = plate_num[3:]
     for char_in_plate in car_num:
         if char_in_plate not in letter_list and char_in_plate not in number_list:

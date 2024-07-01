@@ -48,7 +48,7 @@ public class VideoController {
         model.addAttribute("title","Raw Video");
         model.addAttribute("showResult",false);
 
-        return "result";
+        return "index";
     }
 
     @GetMapping("/startVideo")

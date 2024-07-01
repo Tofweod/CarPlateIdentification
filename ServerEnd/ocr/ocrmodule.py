@@ -33,7 +33,7 @@ def ocr_result() -> Response:
     global result
     if result is None:
         return jsonify({"result": "no result", "status": 1})
-    if not check_plate(result.text, result.plate_type):
+    if not check_plate(result.text, result.plate_type) or result.confidence < 0.9:
         return jsonify({"result": "wrong plate", "status": 1})
 
     return jsonify({"result": f"result:{result.text}<br>confidence:{result.confidence}", "status": 0})

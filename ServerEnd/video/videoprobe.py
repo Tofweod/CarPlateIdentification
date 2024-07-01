@@ -99,10 +99,14 @@ class VideoStableProbe:
                 self.__frame_queue.popleft()
             self.__frame_queue.append(fea_val)
 
+            self.__prev_fea_period = self.__fea_period
             self.fea_period = sum(self.__frame_queue) / len(self.__frame_queue)
             # print(f"val:{self.fea_period},maxsize:{self.__maxSize},cursize:{len(self.__deque)}")
 
-            return self.fea_period <= threshold and len(self.__frame_queue) >= self.__maxSize
+            # Detected descended fea_period
+            return (self.fea_period <= threshold
+                    and self.__prev_fea_period > threshold
+                    and len(self.__frame_queue) >= self.__maxSize)
 
     @staticmethod
     def __option_flow_pyrLK(prev_frame: np.ndarray, cur_frame: np.ndarray) -> Tuple[bool, float, np.ndarray]:

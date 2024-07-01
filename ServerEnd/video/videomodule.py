@@ -54,7 +54,7 @@ def __generate_video_stream(url: str | int = None) -> bytes:
         cap = cv2.VideoCapture(url)
     else:
         cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FPS, 60)
+        cap.set(cv2.CAP_PROP_FPS, 24)
     global current_frame
     global yolo_frame
     global pre_frame

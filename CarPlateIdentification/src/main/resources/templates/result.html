@@ -8,79 +8,23 @@
     <script th:inline="javascript">
         window.onload = function () {
             let elem = localStorage.getItem("base64ImgItem")
-            if(elem) {
+            if(elem != null) {
                 $("#raw_video").append(elem)
                 localStorage.removeItem("base64ImgItem")
-                localStorage.removeItem("finish")
-                localStorage.removeItem("autostart")
             }
-            finish = localStorage.getItem("finish")
-            let autostart = localStorage.getItem("autostart")
-            if(autostart != null && autostart === "true") {
-                $("#start_btn").click();
-            }
-
-            let ocrStatus = document.getElementById('ocrStatus').innerText;
-            console.log(ocrStatus)
-            if (ocrStatus === "1") {
+            let ocrStatus = document.getElementById("ocrStatus").innerHTML;
+            if(ocrStatus === "0") {
                 setTimeout(()=>{
-                    document.querySelector('a[href="/reset"] button').click();
-                },3000)
-                localStorage.setItem("autostart","true")
-            }
-            else if(ocrStatus === "0") {
-                setTimeout(()=>{
-                    document.querySelector('a[href="/reset"] button').click();
+                    window.location.href = "/reset"
                 },10000)
-                localStorage.setItem("autostart","true")
             }
-
-        }
-
-        let start = false;
-        let finish = false;
-
-        $(document).ready(function (){
-            $("#start_btn").click(function (){
-                if(finish) {
-                    alert("video progress has done,please reset")
-                    return
-                }
-                $.ajax({
-                    url:"/startVideo",
-                    type:"GET",
-                    success:function (response) {
-                        start = true
-                        $("#raw_video").append('<img src="'+response+'" alt="raw data"/>');
-                    },
-                    error:function(xhr,status,error){
-                        alert(error);
-                    }
-                })
-            })
-        })
-
-        function checkFinished() {
-            if(!start || finish){
-                return
+            else if(ocrStatus === '1') {
+                window.location.href = "/reset"
             }
-            fetch("/finish")
-                .then(response => response.json())
-                .then(data => {
-                    finish = data.finish
-                    let base64Img = data.baseImg
-                    if(finish === true){
-                        let elem = '<img alt="raw data" src="data:image/jpeg;base64,'+base64Img+'" />'
-                        localStorage.setItem("base64ImgItem",elem)
-                        localStorage.setItem("finish",finish)
-                        location.href = "/result"
-                    }
-                })
         }
 
 
 
-        setInterval(checkFinished,2000)
     </script>
     <style>
         .grid-container {
@@ -153,7 +97,7 @@
     <div class="grid-item" th:classappend="${showResult ? '' : 'hidden'}">
         <div class="caption">Result</div>
         <p th:utext="${ocrResult}" class="centered-content">test txt</p>
-        <p id="ocrStatus" th:text="${ocrStatus}" class="hidden"></p>
+        <div id="ocrStatus" th:text="${ocrStatus}" class="hidden"></div>
     </div>
 </div>
 
