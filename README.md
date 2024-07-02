@@ -33,7 +33,7 @@
 
 - 演示视频
 
-<video src="Test.mp4" controls="controls"></video>
+​	见`Test.mp4`
 
 ## Build
 
