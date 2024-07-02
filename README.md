@@ -31,6 +31,10 @@
 
 ​	通过`localhost:5001`可以设置后端车牌识别的相关参数
 
+- 演示视频
+
+<video src="Test.mp4" controls="controls"></video>
+
 ## Build
 
 - `git clone`克隆本项目到本地

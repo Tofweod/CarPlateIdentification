@@ -7,5 +7,5 @@ video_during_time = 1.0
 threshold = 5.0
 method = 1
 yolo_timeout = 5
-yolo_confidence = 0
-yolo_size = 0
+yolo_confidence = 0.8
+yolo_size = 6000
