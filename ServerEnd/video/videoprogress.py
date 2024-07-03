@@ -13,17 +13,17 @@ def get_gauss_sharpen_gray(frame: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(sharpen, cv2.COLOR_BGR2GRAY)
 
 
+clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+
 def progress_yolo_img(img: np.ndarray, idx: int) -> np.ndarray:
     result = img
     if idx == 0:
         gray = cv2.addWeighted(img[:, :, 1], 0.5, img[:, :, 2], 0.5, 0)
-        hist = cv2.equalizeHist(gray)
-        ret, threshold = cv2.threshold(hist, 160, 255, cv2.THRESH_TOZERO)
+        hist = clahe.apply(gray)
     elif idx == 1:
-        gray = cv2.addWeighted(img[:, :, 0], 0.5, img[:, :, 2], 0.5, 0)
-        hist = cv2.equalizeHist(gray)
-        ret, threshold = cv2.threshold(hist, 180, 255, cv2.THRESH_TRUNC)
-    result = cv2.medianBlur(threshold,3)
+        gray = img[:, :, 1]
+        hist = clahe.apply(gray)
+    result = cv2.medianBlur(hist,3)
 
     return result
 
