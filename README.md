@@ -39,7 +39,7 @@
 
 - `git clone`克隆本项目到本地
 
-- 在Pycharm打开ServerEnd目录，（可选）创建虚拟环境venv或使用conda环境，执行`pip install -r requirements.txt`安装相关依赖，也可运行install.bat进行依赖安装
+- 在Pycharm打开ServerEnd目录，（可选）创建虚拟环境venv或使用conda环境，运行`install.bat`进行依赖安装
 
 - 在IDEA中打开CarPlateIdentifaction目录（注意git clone得到的`CarPlateIdentification`文件夹是整个项目，需要打开的是这个文件夹里面的`CarPlateIdentifaction`前端文件夹），执行`maven install`命令，然后运行`src.main.java.com.example.carplateidentification.CarPlateIdentification.java`
 - 构建完成，确保本地摄像头可用，输入网址`localhost:44906`即可
